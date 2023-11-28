@@ -130,7 +130,12 @@ class RayTracer:
         losts = np.zeros((self.height, self.width))
 
         for smp in range(samples_per_pixel):
-            nu = np.sqrt(np.log(width*height)/(width*height*samples_per_pixel*subsampling))
+            #nu = np.sqrt(np.log(width*height)/(width*height*samples_per_pixel*subsampling))
+            #print("theoritical nu",np.sqrt(np.log(width*height)/(width*height*samples_per_pixel*subsampling)))
+            #nu *= 5000#np.sqrt(np.log(width*height)/(width*height*samples_per_pixel*subsampling))
+            nu = np.sqrt(np.log(width*height)/(samples_per_pixel))
+            #print("second theoritical nu",np.sqrt(np.log(width*height)/(samples_per_pixel)))
+            nu *= 400
             print(100*(smp)/samples_per_pixel,"%")
             if smp!=0:
                 tm = time()-start_time
@@ -144,13 +149,15 @@ class RayTracer:
                 times +=np.ones((self.height, self.width,3))*subsampling
             else:
                 p_flat = probas.ravel()
+                p_flat/=np.sum(p_flat)
+                #print(p.max(p_flat)/,np.min(p_flat),np.min(p_flat),np.max(p_flat))
                 ind = np.arange(len(p_flat))
-
+                
                 res = np.column_stack(
                     np.unravel_index(
                         np.random.choice(ind, p=p_flat, size=subsampling*self.width*self.height),
                         probas.shape))
-                #print(res)
+                #print(res,np.shape(res))
                 pixels,nbs = np.unique(res, return_counts=True,axis=0)
                 pxs = list(zip(pixels,nbs))
                 #print(pxs)
@@ -163,10 +170,26 @@ class RayTracer:
                 for i in range(len(pixels)):
                     m[pixels[i][0],pixels[i][1]] = newrays[i]
                     tms[pixels[i][0],pixels[i][1]] = [nbs[i]]*3
-                losts +=1-(np.sum(
-                    np.abs(image_normalisation((m+image)/(times + tms+0.0001))-image_normalisation(image/(times+0.0001)))**2,axis = 2)/3)
+                losts +=subsampling*(
+                                    np.sum(
+                                        (tms>0)*(
+                                            1-(np.abs(
+                                                image_normalisation(
+                                                    (m+image)/(times + tms+0.0001)
+                                                )-image_normalisation(
+                                                    image/(times+0.0001)
+                                                )
+                                            )/(tms+0.000001))
+                                         )/3
+                                        ,axis = 2
+                                    )
+
+                                )
+
                 image += m
                 times +=tms
+                losts-=np.max(losts)#factorise all the value after exp by e^-nu*maxlost so less pressision errors
+                print("losts:",np.min(losts),"to",np.max(losts),"shape: ",np.shape(losts))
                 exps = np.exp(-nu*losts)
                 sm = np.sum(exps)
                 probas = exps/sm
@@ -183,7 +206,7 @@ class RayTracer:
             plt.xlabel("X")
             plt.ylabel("Y")
             
-            if bandit:
+            if bandit and smp !=0:
                 ax2.imshow(probas, origin='upper')
                 plt.title(
                 "Monte Carlo Ray Tracing probas"+str(100*(smp)/samples_per_pixel)+"%"
@@ -204,8 +227,8 @@ class RayTracer:
             ray_color += self.trace_ray(np.array([0, 0, 0]), ray_direction / np.linalg.norm(ray_direction))
         return ray_color
 
-width=100
-height=100
+width=30
+height=30
 # Setup the scene and render
 ray_tracer = RayTracer(width=width, height=height)
 ray_tracer.add_object(position=np.array([0, -1, -1]), radius=0.9, color=Color(1, 0.5, 0), material=Material(0, 0), emission=1)
@@ -220,16 +243,16 @@ logtransformfactor = 50
 
 
 
-samples_per_pixel = 10000#00
-subsampling = 1000
+samples_per_pixel = 5000000
+subsampling = 10000
 samples_per_pixel//=subsampling
 
 
-image_compare = ray_tracer.render(bandit = False)
-np.save("numpy_ref_img_ray", image_compare)
+"""image_compare = ray_tracer.render(bandit = False)
+np.save("numpy_ref_img_ray", image_compare)"""
 
-"""image_compare =np.load("numpy_ref_img_ray.npy")"""
-samples_per_pixel = 1000#00
+image_compare =np.load("numpy_ref_img_ray.npy")
+samples_per_pixel = 1000000
 subsampling = 25
 samples_per_pixel//=subsampling
 times_hist_bdt = []
@@ -245,8 +268,8 @@ image_bdt = ray_tracer.render(
                                     perf_hist = perf_hist_bdt,
                                     sample_hist = sample_hist_bdt
                                  )
-samples_per_pixel = 1000#00
-subsampling = 100
+samples_per_pixel = 1000000
+subsampling = 2000
 samples_per_pixel//=subsampling
 times_hist_cla = []
 perf_hist_cla = []
