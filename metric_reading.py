@@ -53,24 +53,48 @@ def show_metrics():
     perf_hist_classic, times_hist_classic, sample_hist_classic = import_metrics("Monte Carlo Ray Tracing classic metrics.txt")
     perf_hist_bandit, times_hist_bandit, sample_hist_bandit = import_metrics("Monte Carlo Ray Tracing bandit metrics.txt")
     """ plot the perf in fuction of time"""
-    plt.plot(times_hist_classic, perf_hist_classic, label='classic')
-    plt.plot(times_hist_bandit, perf_hist_bandit, label='bandit')
+    if len(times_hist_classic)>1:
+        plt.plot(times_hist_classic, perf_hist_classic, label='classic', color='red')
+    else:
+        #plot as a single point x
+        plt.scatter(times_hist_classic, perf_hist_classic, label='classic', marker='x', color='red')
+    if len(times_hist_bandit)>1:
+        plt.plot(times_hist_bandit, perf_hist_bandit, label='bandit',color='blue')
+    else:
+        #plot as a single point x
+        plt.scatter(times_hist_bandit, perf_hist_bandit, label='bandit', marker='x', color='blue')
     plt.yscale('log')
     plt.xlabel('time')
     plt.ylabel('immage distance to reference (1-ssim)')
     plt.legend()
     plt.show()
     """ plot the perf in fuction of sample"""
-    plt.plot(sample_hist_classic, perf_hist_classic, label='classic')
-    plt.plot(sample_hist_bandit, perf_hist_bandit, label='bandit')
+    if len(times_hist_classic)>1:
+        plt.plot(sample_hist_classic, perf_hist_classic, label='classic', color='red')
+    else:
+        #plot as a single point x
+        plt.scatter(sample_hist_classic, perf_hist_classic, label='classic', marker='x', color='red')
+    if len(times_hist_bandit)>1:
+        plt.plot(sample_hist_bandit, perf_hist_bandit, label='bandit',color='blue')
+    else:
+        #plot as a single point x
+        plt.scatter(sample_hist_bandit, perf_hist_bandit, label='bandit', marker='x', color='blue')
     plt.yscale('log')
     plt.xlabel('sample')
     plt.ylabel('immage distance to reference (1-ssim)')
     plt.legend()
     plt.show()
     """ plot the sample in function of time"""
-    plt.plot(times_hist_classic, sample_hist_classic, label='classic')
-    plt.plot(times_hist_bandit, sample_hist_bandit, label='bandit')
+    if len(times_hist_classic)>1:
+        plt.plot(times_hist_classic, sample_hist_classic, label='classic', color='red')
+    else:
+        #plot as a single point x
+        plt.scatter(times_hist_classic, sample_hist_classic, label='classic', marker='x', color='red')
+    if len(times_hist_bandit)>1:
+        plt.plot(times_hist_bandit, sample_hist_bandit, label='bandit',color='blue')
+    else:
+        #plot as a single point x
+        plt.scatter(times_hist_bandit, sample_hist_bandit, label='bandit', marker='x', color='blue')
     plt.xlabel('time')
     plt.ylabel('sample')
     plt.legend()
